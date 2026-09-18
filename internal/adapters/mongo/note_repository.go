@@ -76,6 +76,7 @@ func (r *NoteRepository) Update(ctx context.Context, n *domain.Note) error {
 	}
 
 	update := bson.M{"$set": bson.M{
+		"title":      n.Title,
 		"content":    n.Content,
 		"updated_at": n.UpdatedAt,
 	}}

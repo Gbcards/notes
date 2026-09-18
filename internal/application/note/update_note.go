@@ -15,12 +15,12 @@ func NewUpdateNoteUseCase(repo Repository) *UpdateNoteUseCase {
 	return &UpdateNoteUseCase{repo: repo}
 }
 
-func (uc *UpdateNoteUseCase) Execute(ctx context.Context, id, content string) (*domain.Note, error) {
+func (uc *UpdateNoteUseCase) Execute(ctx context.Context, id, title, content string) (*domain.Note, error) {
 	n, err := uc.repo.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if err := n.UpdateContent(content, time.Now()); err != nil {
+	if err := n.Update(title, content, time.Now()); err != nil {
 		return nil, err
 	}
 	if err := uc.repo.Update(ctx, n); err != nil {

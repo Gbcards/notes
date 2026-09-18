@@ -15,8 +15,8 @@ func NewCreateNoteUseCase(repo Repository) *CreateNoteUseCase {
 	return &CreateNoteUseCase{repo: repo}
 }
 
-func (uc *CreateNoteUseCase) Execute(ctx context.Context, content string) (*domain.Note, error) {
-	n, err := domain.New(content, time.Now())
+func (uc *CreateNoteUseCase) Execute(ctx context.Context, title, content string) (*domain.Note, error) {
+	n, err := domain.New(title, content, time.Now())
 	if err != nil {
 		return nil, err
 	}

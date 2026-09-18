@@ -19,7 +19,7 @@ type stubCreator struct {
 	err  error
 }
 
-func (s stubCreator) Execute(ctx context.Context, content string) (*domain.Note, error) {
+func (s stubCreator) Execute(ctx context.Context, title, content string) (*domain.Note, error) {
 	return s.note, s.err
 }
 
@@ -37,7 +37,7 @@ type stubUpdater struct {
 	err  error
 }
 
-func (s stubUpdater) Execute(ctx context.Context, id, content string) (*domain.Note, error) {
+func (s stubUpdater) Execute(ctx context.Context, id, title, content string) (*domain.Note, error) {
 	return s.note, s.err
 }
 
@@ -55,10 +55,10 @@ func newTestRouter(create NoteCreator, list NoteLister, update NoteUpdater, del 
 }
 
 func TestCreate_Success(t *testing.T) {
-	n := &domain.Note{ID: "1", Content: "hola", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	n := &domain.Note{ID: "1", Title: "Title", Content: "hola", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	router := newTestRouter(stubCreator{note: n}, nil, nil, nil)
 
-	body, _ := json.Marshal(createNoteRequest{Content: "hola"})
+	body, _ := json.Marshal(createNoteRequest{Title: "Title", Content: "hola"})
 	req := httptest.NewRequest(http.MethodPost, "/notes", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -73,7 +73,7 @@ func TestCreate_Success(t *testing.T) {
 func TestCreate_EmptyContentReturns400(t *testing.T) {
 	router := newTestRouter(stubCreator{err: domain.ErrEmptyContent}, nil, nil, nil)
 
-	body, _ := json.Marshal(createNoteRequest{Content: ""})
+	body, _ := json.Marshal(createNoteRequest{Title: "Title", Content: ""})
 	req := httptest.NewRequest(http.MethodPost, "/notes", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -86,7 +86,7 @@ func TestCreate_EmptyContentReturns400(t *testing.T) {
 }
 
 func TestList_Success(t *testing.T) {
-	notes := []*domain.Note{{ID: "1", Content: "a", CreatedAt: time.Now(), UpdatedAt: time.Now()}}
+	notes := []*domain.Note{{ID: "1", Title: "Title", Content: "a", CreatedAt: time.Now(), UpdatedAt: time.Now()}}
 	router := newTestRouter(nil, stubLister{notes: notes}, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/notes", nil)
@@ -100,10 +100,10 @@ func TestList_Success(t *testing.T) {
 }
 
 func TestUpdate_Success(t *testing.T) {
-	n := &domain.Note{ID: "1", Content: "updated", CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	n := &domain.Note{ID: "1", Title: "updated title", Content: "updated", CreatedAt: time.Now(), UpdatedAt: time.Now()}
 	router := newTestRouter(nil, nil, stubUpdater{note: n}, nil)
 
-	body, _ := json.Marshal(updateNoteRequest{Content: "updated"})
+	body, _ := json.Marshal(updateNoteRequest{Title: "updated title", Content: "updated"})
 	req := httptest.NewRequest(http.MethodPut, "/notes/1", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -118,7 +118,7 @@ func TestUpdate_Success(t *testing.T) {
 func TestUpdate_NotFoundReturns404(t *testing.T) {
 	router := newTestRouter(nil, nil, stubUpdater{err: domain.ErrNotFound}, nil)
 
-	body, _ := json.Marshal(updateNoteRequest{Content: "updated"})
+	body, _ := json.Marshal(updateNoteRequest{Title: "updated title", Content: "updated"})
 	req := httptest.NewRequest(http.MethodPut, "/notes/missing", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()

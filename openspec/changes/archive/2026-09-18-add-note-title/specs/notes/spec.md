@@ -1,10 +1,6 @@
-# Notes Specification
+# Spec Delta
 
-## Purpose
-
-Lets clients create, list, edit, and delete simple text notes, each tracked with its creation and last-updated timestamps.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Create Note
 The system SHALL allow creating a note by submitting its content and an optional title. The system SHALL reject a note with empty content. The system SHALL accept an empty or omitted title. On success, the system SHALL assign the note an identifier and set both its creation timestamp and last-updated timestamp to the time of creation.
@@ -50,14 +46,3 @@ The system SHALL allow updating the title and content of an existing note by its
 #### Scenario: Rejects empty content on update
 - **WHEN** a client submits empty or missing content for an existing note's identifier
 - **THEN** the system rejects the request and leaves the note unchanged, regardless of the title submitted
-
-### Requirement: Delete Note
-The system SHALL allow deleting an existing note by its identifier.
-
-#### Scenario: Successful deletion
-- **WHEN** a client requests deletion of an existing note's identifier
-- **THEN** the system deletes the note so it no longer appears when listing notes
-
-#### Scenario: Deletion of nonexistent note
-- **WHEN** a client requests deletion of an identifier that does not match any note
-- **THEN** the system rejects the request and deletes nothing

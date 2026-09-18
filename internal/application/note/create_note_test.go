@@ -16,18 +16,30 @@ func TestCreateNoteUseCase_Success(t *testing.T) {
 	repo.On("Create", mock.Anything, mock.AnythingOfType("*note.Note")).Return(nil)
 	uc := NewCreateNoteUseCase(repo)
 
-	n, err := uc.Execute(context.Background(), "hola")
+	n, err := uc.Execute(context.Background(), "Title", "hola")
 
 	assert.NoError(t, err)
+	assert.Equal(t, "Title", n.Title)
 	assert.Equal(t, "hola", n.Content)
 	repo.AssertExpectations(t)
+}
+
+func TestCreateNoteUseCase_AcceptsEmptyTitle(t *testing.T) {
+	repo := new(mockRepository)
+	repo.On("Create", mock.Anything, mock.AnythingOfType("*note.Note")).Return(nil)
+	uc := NewCreateNoteUseCase(repo)
+
+	n, err := uc.Execute(context.Background(), "", "hola")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "", n.Title)
 }
 
 func TestCreateNoteUseCase_RejectsEmptyContent(t *testing.T) {
 	repo := new(mockRepository)
 	uc := NewCreateNoteUseCase(repo)
 
-	n, err := uc.Execute(context.Background(), "")
+	n, err := uc.Execute(context.Background(), "Title", "")
 
 	assert.Nil(t, n)
 	assert.ErrorIs(t, err, domain.ErrEmptyContent)
@@ -40,7 +52,7 @@ func TestCreateNoteUseCase_RepositoryError(t *testing.T) {
 	repo.On("Create", mock.Anything, mock.AnythingOfType("*note.Note")).Return(repoErr)
 	uc := NewCreateNoteUseCase(repo)
 
-	_, err := uc.Execute(context.Background(), "hola")
+	_, err := uc.Execute(context.Background(), "Title", "hola")
 
 	assert.ErrorIs(t, err, repoErr)
 }

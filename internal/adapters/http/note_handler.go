@@ -14,7 +14,7 @@ import (
 // this adapter depends on. They are exported so the DI wiring (internal/platform)
 // can bind a use case's concrete type to the interface via fx.As.
 type NoteCreator interface {
-	Execute(ctx context.Context, content string) (*domain.Note, error)
+	Execute(ctx context.Context, title, content string) (*domain.Note, error)
 }
 
 type NoteLister interface {
@@ -22,7 +22,7 @@ type NoteLister interface {
 }
 
 type NoteUpdater interface {
-	Execute(ctx context.Context, id, content string) (*domain.Note, error)
+	Execute(ctx context.Context, id, title, content string) (*domain.Note, error)
 }
 
 type NoteDeleter interface {
@@ -47,7 +47,7 @@ func (h *NoteHandler) Create(c *gin.Context) {
 		return
 	}
 
-	n, err := h.create.Execute(c.Request.Context(), req.Content)
+	n, err := h.create.Execute(c.Request.Context(), req.Title, req.Content)
 	if err != nil {
 		writeError(c, err)
 		return
@@ -71,7 +71,7 @@ func (h *NoteHandler) Update(c *gin.Context) {
 		return
 	}
 
-	n, err := h.update.Execute(c.Request.Context(), c.Param("id"), req.Content)
+	n, err := h.update.Execute(c.Request.Context(), c.Param("id"), req.Title, req.Content)
 	if err != nil {
 		writeError(c, err)
 		return
