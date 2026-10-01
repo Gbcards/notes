@@ -2,6 +2,7 @@ package note
 
 import (
 	"errors"
+	"strings"
 	"testing"
 	"time"
 )
@@ -38,6 +39,41 @@ func TestNew_RejectsEmptyContent(t *testing.T) {
 	_, err := New("Title", "", time.Now())
 	if !errors.Is(err, ErrEmptyContent) {
 		t.Fatalf("expected ErrEmptyContent, got %v", err)
+	}
+}
+
+func TestNew_AcceptsTitleAtMaxLength(t *testing.T) {
+	title := strings.Repeat("a", 200)
+
+	n, err := New(title, "hola", time.Now())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if n.Title != title {
+		t.Errorf("expected title to be stored unchanged, got %q", n.Title)
+	}
+}
+
+func TestNew_RejectsTitleExceedingMaxLength(t *testing.T) {
+	title := strings.Repeat("a", 201)
+
+	_, err := New(title, "hola", time.Now())
+	if !errors.Is(err, ErrTitleTooLong) {
+		t.Fatalf("expected ErrTitleTooLong, got %v", err)
+	}
+}
+
+func TestNew_AcceptsMultiByteTitleAtMaxRuneLength(t *testing.T) {
+	// "ñ" and "á" are 2 bytes each in UTF-8, so 200 of them is 400 bytes
+	// but only 200 runes -- this proves rune-counting, not byte-length, is used.
+	title := strings.Repeat("ñá", 100)
+
+	n, err := New(title, "hola", time.Now())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if n.Title != title {
+		t.Errorf("expected title to be stored unchanged, got %q", n.Title)
 	}
 }
 
@@ -80,5 +116,52 @@ func TestUpdate_RejectsEmptyContent(t *testing.T) {
 	}
 	if n.Title != "original title" {
 		t.Errorf("expected title to remain %q, got %q", "original title", n.Title)
+	}
+}
+
+func TestUpdate_AcceptsTitleAtMaxLength(t *testing.T) {
+	n, err := New("original title", "original", time.Now())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	title := strings.Repeat("a", 200)
+	if err := n.Update(title, "updated", time.Now()); err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if n.Title != title {
+		t.Errorf("expected title to be stored unchanged, got %q", n.Title)
+	}
+}
+
+func TestUpdate_RejectsTitleExceedingMaxLength(t *testing.T) {
+	n, err := New("original title", "original", time.Now())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	title := strings.Repeat("a", 201)
+	if err := n.Update(title, "updated", time.Now()); !errors.Is(err, ErrTitleTooLong) {
+		t.Fatalf("expected ErrTitleTooLong, got %v", err)
+	}
+	if n.Title != "original title" {
+		t.Errorf("expected title to remain %q, got %q", "original title", n.Title)
+	}
+}
+
+func TestUpdate_AcceptsMultiByteTitleAtMaxRuneLength(t *testing.T) {
+	n, err := New("original title", "original", time.Now())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// "ñ" and "á" are 2 bytes each in UTF-8, so 200 of them is 400 bytes
+	// but only 200 runes -- this proves rune-counting, not byte-length, is used.
+	title := strings.Repeat("ñá", 100)
+	if err := n.Update(title, "updated", time.Now()); err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if n.Title != title {
+		t.Errorf("expected title to be stored unchanged, got %q", n.Title)
 	}
 }
