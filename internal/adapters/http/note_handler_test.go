@@ -85,6 +85,21 @@ func TestCreate_EmptyContentReturns400(t *testing.T) {
 	}
 }
 
+func TestCreate_TitleTooLongReturns400(t *testing.T) {
+	router := newTestRouter(stubCreator{err: domain.ErrTitleTooLong}, nil, nil, nil)
+
+	body, _ := json.Marshal(createNoteRequest{Title: "Title", Content: "hola"})
+	req := httptest.NewRequest(http.MethodPost, "/notes", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
 func TestList_Success(t *testing.T) {
 	notes := []*domain.Note{{ID: "1", Title: "Title", Content: "a", CreatedAt: time.Now(), UpdatedAt: time.Now()}}
 	router := newTestRouter(nil, stubLister{notes: notes}, nil, nil)
@@ -127,6 +142,21 @@ func TestUpdate_NotFoundReturns404(t *testing.T) {
 
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("expected 404, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestUpdate_TitleTooLongReturns400(t *testing.T) {
+	router := newTestRouter(nil, nil, stubUpdater{err: domain.ErrTitleTooLong}, nil)
+
+	body, _ := json.Marshal(updateNoteRequest{Title: "updated title", Content: "updated"})
+	req := httptest.NewRequest(http.MethodPut, "/notes/1", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
 	}
 }
 
