@@ -75,12 +75,7 @@ func (r *NoteRepository) Update(ctx context.Context, n *domain.Note) error {
 		return domain.ErrNotFound
 	}
 
-	update := bson.M{"$set": bson.M{
-		"title":      n.Title,
-		"content":    n.Content,
-		"updated_at": n.UpdatedAt,
-	}}
-	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": objectID}, updateDocument(n))
 	if err != nil {
 		return err
 	}
